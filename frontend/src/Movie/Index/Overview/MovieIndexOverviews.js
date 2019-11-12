@@ -188,26 +188,32 @@ class MovieIndexOverviews extends Component {
     }
 
     return (
-      <MovieIndexItemConnector
+      <div
+        className={styles.container}
         key={key}
-        component={MovieIndexOverview}
-        sortKey={sortKey}
-        posterWidth={posterWidth}
-        posterHeight={posterHeight}
-        rowHeight={rowHeight}
-        overviewOptions={overviewOptions}
-        showRelativeDates={showRelativeDates}
-        shortDateFormat={shortDateFormat}
-        longDateFormat={longDateFormat}
-        timeFormat={timeFormat}
-        isSmallScreen={isSmallScreen}
         style={style}
-        movieId={movie.id}
-        qualityProfileId={movie.qualityProfileId}
-        isSelected={selectedState[movie.id]}
-        onSelectedChange={onSelectedChange}
-        isMovieEditorActive={isMovieEditorActive}
-      />
+      >
+        <MovieIndexItemConnector
+          key={rowIndex}
+          component={MovieIndexOverview}
+          sortKey={sortKey}
+          posterWidth={posterWidth}
+          posterHeight={posterHeight}
+          rowHeight={rowHeight}
+          overviewOptions={overviewOptions}
+          showRelativeDates={showRelativeDates}
+          shortDateFormat={shortDateFormat}
+          longDateFormat={longDateFormat}
+          timeFormat={timeFormat}
+          isSmallScreen={isSmallScreen}
+          movieId={movie.id}
+          qualityProfileId={movie.qualityProfileId}
+          isSelected={selectedState[movie.id]}
+          onSelectedChange={onSelectedChange}
+          isMovieEditorActive={isMovieEditorActive}
+          isScrollingOptOut={true}
+        />
+      </div>
     );
   }
 
