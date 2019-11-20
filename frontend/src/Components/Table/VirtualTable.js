@@ -1,12 +1,8 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
-import { WindowScroller } from 'react-virtualized';
-import { isLocked } from 'Utilities/scrollLock';
-import { scrollDirections } from 'Helpers/Props';
-import Measure from 'Components/Measure';
-import Scroller from 'Components/Scroller/Scroller';
-import VirtualTableBody from './VirtualTableBody';
+import { WindowScroller, Grid } from 'react-virtualized';
+import { sortDirections } from 'Helpers/Props';
+import hasDifferentItemsOrOrder from 'Utilities/Object/hasDifferentItemsOrOrder';
 import styles from './VirtualTable.css';
 
 const ROW_HEIGHT = 38;
@@ -40,58 +36,43 @@ class VirtualTable extends Component {
   constructor(props, context) {
     super(props, context);
 
-    this.state = {
-      width: 0
-    };
-
-    this._isInitialized = false;
+    this._grid = null;
   }
 
-  componentDidMount() {
-    this._contentBodyNode = ReactDOM.findDOMNode(this.props.contentBody);
-  }
+  componentDidUpdate(prevProps, prevState) {
 
-  componentDidUpdate(prevProps, preState) {
-    const scrollIndex = this.props.scrollIndex;
+    const {
+      items,
+      filters,
+      sortKey,
+      sortDirection,
+      scrollIndex
+    } = this.props;
+
+    const itemsChanged = hasDifferentItemsOrOrder(prevProps.items, items);
+
+    if (
+      prevProps.filters !== filters ||
+      prevProps.sortKey !== sortKey ||
+      prevProps.sortDirection !== sortDirection ||
+      itemsChanged
+    ) {
+      this._grid.recomputeGridSize();
+    }
 
     if (scrollIndex != null && scrollIndex !== prevProps.scrollIndex) {
-      const scrollTop = (scrollIndex + 1) * ROW_HEIGHT + 20;
-
-      this.props.onScroll({ scrollTop });
+      this._grid.scrollToCell({
+        rowIndex: scrollIndex,
+        columnIndex: 0
+      });
     }
   }
 
   //
   // Control
 
-  rowGetter = ({ index }) => {
-    return this.props.items[index];
-  }
-
-  //
-  // Listeners
-
-  onMeasure = ({ width }) => {
-    this.setState({
-      width
-    });
-  }
-
-  onSectionRendered = () => {
-    if (!this._isInitialized && this._contentBodyNode) {
-      this.props.onRender();
-      this._isInitialized = true;
-    }
-  }
-
-  onScroll = (props) => {
-    if (isLocked()) {
-      return;
-    }
-
-    const { onScroll } = this.props;
-
-    onScroll(props);
+  setGridRef = (ref) => {
+    this._grid = ref;
   }
 
   //
@@ -101,34 +82,24 @@ class VirtualTable extends Component {
     const {
       className,
       items,
-      isSmallScreen,
+      scroller,
       header,
       headerHeight,
-      scrollTop,
       rowRenderer,
-      onScroll,
       ...otherProps
     } = this.props;
 
-    const {
-      width
-    } = this.state;
-
     return (
-      <Measure onMeasure={this.onMeasure}>
-        <WindowScroller
-          scrollElement={isSmallScreen ? undefined : this._contentBodyNode}
-          onScroll={this.onScroll}
-        >
-          {({ height, isScrolling }) => {
-            return (
-              <Scroller
-                className={className}
-                scrollDirection={scrollDirections.HORIZONTAL}
-              >
-                {header}
-
-                <VirtualTableBody
+      <WindowScroller
+        scrollElement={scroller}
+      >
+        {({ width, height, registerChild, onChildScroll, scrollTop }) => {
+          return (
+            <>
+              {header}
+              <div ref={registerChild}>
+                <Grid
+                  ref={this.setGridRef}
                   autoContainerWidth={true}
                   width={width}
                   height={height}
@@ -137,20 +108,37 @@ class VirtualTable extends Component {
                   rowCount={items.length}
                   columnCount={1}
                   scrollTop={scrollTop}
+                  onScroll={onChildScroll}
                   autoHeight={true}
+                  autoWidth={true}
                   overscanRowCount={2}
                   cellRenderer={rowRenderer}
                   columnWidth={width}
                   overscanIndicesGetter={overscanIndicesGetter}
-                  onSectionRendered={this.onSectionRendered}
+                  scrollToAlignment={'start'}
+                  isScrollingOptout={true}
+                  className={styles.tableBodyContainer}
+                  style={{
+                    boxSizing: undefined,
+                    direction: undefined,
+                    height: undefined,
+                    position: undefined,
+                    willChange: undefined,
+                    overflow: undefined,
+                    width: undefined
+                  }}
+                  containerStyle={{
+                    position: undefined
+                  }}
+                  items={items} // unused but pass to ensure update on change
                   {...otherProps}
                 />
-              </Scroller>
-            );
-          }
-          }
-        </WindowScroller>
-      </Measure>
+              </div>
+            </>
+          );
+        }
+        }
+      </WindowScroller>
     );
   }
 }
@@ -158,21 +146,19 @@ class VirtualTable extends Component {
 VirtualTable.propTypes = {
   className: PropTypes.string.isRequired,
   items: PropTypes.arrayOf(PropTypes.object).isRequired,
-  scrollTop: PropTypes.number.isRequired,
+  filters: PropTypes.arrayOf(PropTypes.object),
+  sortKey: PropTypes.string,
+  sortDirection: PropTypes.oneOf(sortDirections.all),
   scrollIndex: PropTypes.number,
-  contentBody: PropTypes.object.isRequired,
-  isSmallScreen: PropTypes.bool.isRequired,
+  scroller: PropTypes.instanceOf(Element).isRequired,
   header: PropTypes.node.isRequired,
   headerHeight: PropTypes.number.isRequired,
-  rowRenderer: PropTypes.func.isRequired,
-  onRender: PropTypes.func.isRequired,
-  onScroll: PropTypes.func.isRequired
+  rowRenderer: PropTypes.func.isRequired
 };
 
 VirtualTable.defaultProps = {
   className: styles.tableContainer,
-  headerHeight: 38,
-  onRender: () => {}
+  headerHeight: 38
 };
 
 export default VirtualTable;

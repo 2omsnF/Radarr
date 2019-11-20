@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 import { Grid, WindowScroller } from 'react-virtualized';
 import getIndexOfFirstCharacter from 'Utilities/Array/getIndexOfFirstCharacter';
 import hasDifferentItemsOrOrder from 'Utilities/Object/hasDifferentItemsOrOrder';
@@ -108,10 +107,6 @@ class MovieIndexPosters extends Component {
     this._grid = null;
   }
 
-  componentDidMount() {
-    this._contentBodyNode = ReactDOM.findDOMNode(this.props.contentBody);
-  }
-
   componentDidUpdate(prevProps) {
     const {
       items,
@@ -144,16 +139,17 @@ class MovieIndexPosters extends Component {
     if (jumpToCharacter != null && jumpToCharacter !== prevProps.jumpToCharacter) {
       const index = getIndexOfFirstCharacter(items, jumpToCharacter);
 
-      if (index != null) {
+      if (this._grid && index != null) {
         const {
-          columnCount,
-          rowHeight
+          columnCount
         } = this.state;
 
         const row = Math.floor(index / columnCount);
-        const scrollTop = rowHeight * row;
 
-        this.props.onScroll({ scrollTop });
+        this._grid.scrollToCell({
+          rowIndex: row,
+          columnIndex: 0
+        });
       }
     }
   }
@@ -228,7 +224,7 @@ class MovieIndexPosters extends Component {
         style={style}
       >
         <MovieIndexItemConnector
-          key={movieIdx}
+          key={movie.id}
           component={MovieIndexPoster}
           sortKey={sortKey}
           posterWidth={posterWidth}
@@ -257,22 +253,13 @@ class MovieIndexPosters extends Component {
     this.calculateGrid(width, this.props.isSmallScreen);
   }
 
-  onSectionRendered = () => {
-    if (!this._isInitialized && this._contentBodyNode) {
-      this.props.onRender();
-      this._isInitialized = true;
-    }
-  }
-
   //
   // Render
 
   render() {
     const {
+      scroller,
       items,
-      scrollTop,
-      isSmallScreen,
-      onScroll,
       selectedState
     } = this.props;
 
@@ -286,30 +273,35 @@ class MovieIndexPosters extends Component {
     const rowCount = Math.ceil(items.length / columnCount);
 
     return (
-      <Measure onMeasure={this.onMeasure}>
+      <Measure
+        whitelist={['width']}
+        onMeasure={this.onMeasure}
+      >
         <WindowScroller
-          scrollElement={isSmallScreen ? undefined : this._contentBodyNode}
-          onScroll={onScroll}
+          scrollElement={scroller}
         >
-          {({ height, isScrolling }) => {
+          {({ height, registerChild, onChildScroll, scrollTop }) => {
             return (
-              <Grid
-                ref={this.setGridRef}
-                className={styles.grid}
-                autoHeight={true}
-                height={height}
-                columnCount={columnCount}
-                columnWidth={columnWidth}
-                rowCount={rowCount}
-                rowHeight={rowHeight}
-                width={width}
-                scrollTop={scrollTop}
-                overscanRowCount={2}
-                cellRenderer={this.cellRenderer}
-                onSectionRendered={this.onSectionRendered}
-                selectedState={selectedState}
-                isScrollingOptOut={true}
-              />
+              <div ref={registerChild}>
+                <Grid
+                  ref={this.setGridRef}
+                  className={styles.grid}
+                  autoHeight={true}
+                  height={height}
+                  columnCount={columnCount}
+                  columnWidth={columnWidth}
+                  rowCount={rowCount}
+                  rowHeight={rowHeight}
+                  width={width}
+                  onScroll={onChildScroll}
+                  scrollTop={scrollTop}
+                  overscanRowCount={2}
+                  cellRenderer={this.cellRenderer}
+                  selectedState={selectedState}
+                  scrollToAlignment={'start'}
+                  isScrollingOptOut={true}
+                />
+              </div>
             );
           }
           }
@@ -325,15 +317,12 @@ MovieIndexPosters.propTypes = {
   sortKey: PropTypes.string,
   sortDirection: PropTypes.oneOf(sortDirections.all),
   posterOptions: PropTypes.object.isRequired,
-  scrollTop: PropTypes.number.isRequired,
   jumpToCharacter: PropTypes.string,
-  contentBody: PropTypes.object.isRequired,
+  scroller: PropTypes.instanceOf(Element).isRequired,
   showRelativeDates: PropTypes.bool.isRequired,
   shortDateFormat: PropTypes.string.isRequired,
   isSmallScreen: PropTypes.bool.isRequired,
   timeFormat: PropTypes.string.isRequired,
-  onRender: PropTypes.func.isRequired,
-  onScroll: PropTypes.func.isRequired,
   selectedState: PropTypes.object.isRequired,
   onSelectedChange: PropTypes.func.isRequired,
   isMovieEditorActive: PropTypes.bool.isRequired
