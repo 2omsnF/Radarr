@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import dimensions from 'Styles/Variables/dimensions';
@@ -18,7 +17,7 @@ class PageJumpBar extends Component {
 
     this.state = {
       height: 0,
-      visibleItems: props.items
+      visibleItems: props.items.order
     };
   }
 
@@ -52,29 +51,45 @@ class PageJumpBar extends Component {
       minimumItems
     } = this.props;
 
+    if (!items) {
+      return;
+    }
+
+    const {
+      characters,
+      order
+    } = items;
+
     const height = this.state.height;
     const maximumItems = Math.floor(height / ITEM_HEIGHT);
-    const diff = items.length - maximumItems;
+    const diff = order.length - maximumItems;
 
     if (diff < 0) {
-      this.setState({ visibleItems: items });
+      this.setState({ visibleItems: order });
       return;
     }
 
-    if (items.length < minimumItems) {
-      this.setState({ visibleItems: items });
+    if (order.length < minimumItems) {
+      this.setState({ visibleItems: order });
       return;
     }
 
-    const removeDiff = Math.ceil(items.length / maximumItems);
+    // get first, last, and nost common in between to make up numbers
+    const visibleItems = [order[0]];
+    const minCount = order.map((x) => characters[x]).sort((a, b) => b - a)[maximumItems - 3];
 
-    const visibleItems = _.reduce(items, (acc, item, index) => {
-      if (index % removeDiff === 0) {
-        acc.push(item);
+    for (let i = 1; i < order.length - 1; i++) {
+      if (characters[order[i]] >= minCount) {
+        visibleItems.push(order[i]);
       }
 
-      return acc;
-    }, []);
+      // in case there's a tie in the counts at the wrong point
+      if (visibleItems.length === maximumItems) {
+        break;
+      }
+    }
+
+    visibleItems.push(order[order.length - 1]);
 
     this.setState({ visibleItems });
   }
@@ -129,7 +144,7 @@ class PageJumpBar extends Component {
 }
 
 PageJumpBar.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.string).isRequired,
+  items: PropTypes.object.isRequired,
   minimumItems: PropTypes.number.isRequired,
   onItemPress: PropTypes.func.isRequired
 };
