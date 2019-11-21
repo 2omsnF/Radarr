@@ -43,10 +43,19 @@ class OverlayScroller extends Component {
     }
   }
 
-  _renderThumb = (props) => {
+  _renderThumbVertical = (props) => {
     return (
       <div
-        className={this.props.trackClassName}
+        className={this.props.trackClassNameVertical}
+        {...props}
+      />
+    );
+  }
+
+  _renderThumbHorizontal = (props) => {
+    return (
+      <div
+        className={this.props.trackClassNameHorizontal}
         {...props}
       />
     );
@@ -139,8 +148,8 @@ class OverlayScroller extends Component {
         hideTracksWhenNotNeeded={autoScroll}
         renderTrackHorizontal={this._renderTrackHorizontal}
         renderTrackVertical={this._renderTrackVertical}
-        renderThumbHorizontal={this._renderThumb}
-        renderThumbVertical={this._renderThumb}
+        renderThumbHorizontal={this._renderThumbHorizontal}
+        renderThumbVertical={this._renderThumbVertical}
         renderView={this._renderView}
         onScrollStart={this.onScrollStart}
         onScrollStop={this.onScrollStop}
@@ -155,9 +164,10 @@ class OverlayScroller extends Component {
 
 OverlayScroller.propTypes = {
   className: PropTypes.string,
-  trackClassName: PropTypes.string,
+  trackClassNameVertical: PropTypes.string,
+  trackClassNameHorizontal: PropTypes.string,
   scrollTop: PropTypes.number,
-  scrollDirection: PropTypes.oneOf([scrollDirections.NONE, scrollDirections.HORIZONTAL, scrollDirections.VERTICAL]).isRequired,
+  scrollDirection: PropTypes.oneOf([scrollDirections.NONE, scrollDirections.HORIZONTAL, scrollDirections.VERTICAL, scrollDirections.BOTH]).isRequired,
   autoHide: PropTypes.bool.isRequired,
   autoScroll: PropTypes.bool.isRequired,
   children: PropTypes.node,
@@ -167,7 +177,8 @@ OverlayScroller.propTypes = {
 
 OverlayScroller.defaultProps = {
   className: styles.scroller,
-  trackClassName: styles.thumb,
+  trackClassNameVertical: styles.thumbVertical,
+  trackClassNameHorizontal: styles.thumbHorizontal,
   scrollDirection: scrollDirections.VERTICAL,
   autoHide: false,
   autoScroll: true,
