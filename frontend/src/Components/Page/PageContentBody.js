@@ -24,6 +24,7 @@ class PageContentBody extends Component {
 
   render() {
     const {
+      scrollDirection,
       className,
       innerClassName,
       isSmallScreen,
@@ -37,7 +38,7 @@ class PageContentBody extends Component {
     return (
       <ScrollerComponent
         className={className}
-        scrollDirection={scrollDirections.VERTICAL}
+        scrollDirection={scrollDirection}
         {...otherProps}
         onScroll={this.onScroll}
       >
@@ -50,6 +51,7 @@ class PageContentBody extends Component {
 }
 
 PageContentBody.propTypes = {
+  scrollDirection: PropTypes.string,
   className: PropTypes.string,
   innerClassName: PropTypes.string,
   isSmallScreen: PropTypes.bool.isRequired,
@@ -59,6 +61,7 @@ PageContentBody.propTypes = {
 };
 
 PageContentBody.defaultProps = {
+  scrollDirection: scrollDirections.VERTICAL,
   className: styles.contentBody,
   innerClassName: styles.innerContentBody
 };
