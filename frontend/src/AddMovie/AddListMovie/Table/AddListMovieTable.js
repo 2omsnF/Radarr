@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import getIndexOfFirstCharacter from 'Utilities/Array/getIndexOfFirstCharacter';
 import { sortDirections } from 'Helpers/Props';
 import VirtualTable from 'Components/Table/VirtualTable';
+import VirtualTableRow from 'Components/Table/VirtualTableRow';
 import AddListMovieItemConnector from 'AddMovie/AddListMovie/AddListMovieItemConnector';
 import AddListMovieHeaderConnector from './AddListMovieHeaderConnector';
 import AddListMovieRowConnector from './AddListMovieRowConnector';
@@ -23,10 +24,9 @@ class AddListMovieTable extends Component {
 
   componentDidUpdate(prevProps) {
     const {
-      items
+      items,
+      jumpToCharacter
     } = this.props;
-
-    const jumpToCharacter = this.props.jumpToCharacter;
 
     if (jumpToCharacter != null && jumpToCharacter !== prevProps.jumpToCharacter) {
 
@@ -52,13 +52,17 @@ class AddListMovieTable extends Component {
     const movie = items[rowIndex];
 
     return (
-      <AddListMovieItemConnector
+      <VirtualTableRow
         key={key}
-        component={AddListMovieRowConnector}
         style={style}
-        columns={columns}
-        movieId={movie.tmdbId}
-      />
+      >
+        <AddListMovieItemConnector
+          key={movie.id}
+          component={AddListMovieRowConnector}
+          columns={columns}
+          movieId={movie.tmdbId}
+        />
+      </VirtualTableRow>
     );
   }
 
@@ -72,22 +76,16 @@ class AddListMovieTable extends Component {
       filters,
       sortKey,
       sortDirection,
-      isSmallScreen,
-      scrollTop,
-      contentBody,
-      onSortPress,
-      onRender,
-      onScroll
+      scroller,
+      onSortPress
     } = this.props;
 
     return (
       <VirtualTable
         className={styles.tableContainer}
         items={items}
-        scrollTop={scrollTop}
         scrollIndex={this.state.scrollIndex}
-        contentBody={contentBody}
-        isSmallScreen={isSmallScreen}
+        scroller={scroller}
         rowHeight={38}
         overscanRowCount={2}
         rowRenderer={this.rowRenderer}
@@ -103,8 +101,6 @@ class AddListMovieTable extends Component {
         filters={filters}
         sortKey={sortKey}
         sortDirection={sortDirection}
-        onRender={onRender}
-        onScroll={onScroll}
       />
     );
   }
@@ -116,13 +112,9 @@ AddListMovieTable.propTypes = {
   filters: PropTypes.arrayOf(PropTypes.object).isRequired,
   sortKey: PropTypes.string,
   sortDirection: PropTypes.oneOf(sortDirections.all),
-  scrollTop: PropTypes.number.isRequired,
   jumpToCharacter: PropTypes.string,
-  contentBody: PropTypes.object.isRequired,
-  isSmallScreen: PropTypes.bool.isRequired,
-  onSortPress: PropTypes.func.isRequired,
-  onRender: PropTypes.func.isRequired,
-  onScroll: PropTypes.func.isRequired
+  scroller: PropTypes.instanceOf(Element).isRequired,
+  onSortPress: PropTypes.func.isRequired
 };
 
 export default AddListMovieTable;

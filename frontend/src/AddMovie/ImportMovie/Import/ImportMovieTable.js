@@ -2,6 +2,7 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import VirtualTable from 'Components/Table/VirtualTable';
+import VirtualTableRow from 'Components/Table/VirtualTableRow';
 import ImportMovieHeader from './ImportMovieHeader';
 import ImportMovieRowConnector from './ImportMovieRowConnector';
 
@@ -107,14 +108,18 @@ class ImportMovieTable extends Component {
     const item = items[rowIndex];
 
     return (
-      <ImportMovieRowConnector
+      <VirtualTableRow
         key={key}
         style={style}
-        rootFolderId={rootFolderId}
-        isSelected={selectedState[item.id]}
-        onSelectedChange={onSelectedChange}
-        id={item.id}
-      />
+      >
+        <ImportMovieRowConnector
+          key={item.id}
+          rootFolderId={rootFolderId}
+          isSelected={selectedState[item.id]}
+          onSelectedChange={onSelectedChange}
+          id={item.id}
+        />
+      </VirtualTableRow>
     );
   }
 
@@ -126,12 +131,9 @@ class ImportMovieTable extends Component {
       items,
       allSelected,
       allUnselected,
-      isSmallScreen,
-      contentBody,
-      scrollTop,
+      scroller,
       selectedState,
-      onSelectAllChange,
-      onScroll
+      onSelectAllChange
     } = this.props;
 
     if (!items.length) {
@@ -141,10 +143,8 @@ class ImportMovieTable extends Component {
     return (
       <VirtualTable
         items={items}
-        contentBody={contentBody}
-        isSmallScreen={isSmallScreen}
+        scroller={scroller}
         rowHeight={52}
-        scrollTop={scrollTop}
         overscanRowCount={2}
         rowRenderer={this.rowRenderer}
         header={
@@ -155,7 +155,6 @@ class ImportMovieTable extends Component {
           />
         }
         selectedState={selectedState}
-        onScroll={onScroll}
       />
     );
   }
@@ -171,16 +170,13 @@ ImportMovieTable.propTypes = {
   allSelected: PropTypes.bool.isRequired,
   allUnselected: PropTypes.bool.isRequired,
   selectedState: PropTypes.object.isRequired,
-  isSmallScreen: PropTypes.bool.isRequired,
   allMovies: PropTypes.arrayOf(PropTypes.object),
-  contentBody: PropTypes.object.isRequired,
-  scrollTop: PropTypes.number.isRequired,
+  scroller: PropTypes.instanceOf(Element).isRequired,
   onSelectAllChange: PropTypes.func.isRequired,
   onSelectedChange: PropTypes.func.isRequired,
   onRemoveSelectedStateItem: PropTypes.func.isRequired,
   onMovieLookup: PropTypes.func.isRequired,
-  onSetImportMovieValue: PropTypes.func.isRequired,
-  onScroll: PropTypes.func.isRequired
+  onSetImportMovieValue: PropTypes.func.isRequired
 };
 
 export default ImportMovieTable;

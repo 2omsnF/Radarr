@@ -8,15 +8,13 @@ function createMapStateToProps() {
   return createSelector(
     (state) => state.addMovie,
     (state) => state.importMovie,
-    (state) => state.app.dimensions,
     createAllMoviesSelector(),
-    (addMovie, importMovie, dimensions, allMovies) => {
+    (addMovie, importMovie, allMovies) => {
       return {
         defaultMonitor: addMovie.defaults.monitor,
         defaultQualityProfileId: addMovie.defaults.qualityProfileId,
         defaultMinimumAvailability: addMovie.defaults.minimumAvailability,
         items: importMovie.items,
-        isSmallScreen: dimensions.isSmallScreen,
         allMovies
       };
     }
